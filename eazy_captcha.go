@@ -18,8 +18,8 @@ type rudeSolver struct {
 
 type recapRequest struct {
 	url        string
-	postParams map[string]interface{}
-	getParams  map[string]interface{}
+	postParams string
+	getParams  string
 }
 
 //Solver is struct
