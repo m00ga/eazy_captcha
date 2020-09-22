@@ -1,4 +1,4 @@
- //Realization a strategy pattern for captcha solving
+//Realization a strategy pattern for captcha solving
 
 package eazycaptcha
 
@@ -9,30 +9,28 @@ import (
 
 //Solvable is abstract realization for solver structs
 type Solvable interface {
-	Solve(ch chan capResp)
+	Solve(ch chan CapResponse)
 }
 
-type rudeSolver struct {
-	request *recapRequest
-}
-
-type recapRequest struct {
-	url        string
-	postParams string
-	getParams  string
+type CapResponse interface {
+	getData() (string, error)
 }
 
 //Solver is struct
 type Solver struct {
 	alghoritm Solvable
-	mu sync.Mutex
+	mu        sync.Mutex
 	counter   int
-	tasks     map[int]chan capResp
+	tasks     map[int]chan CapResponse
 }
 
 type capResp struct {
 	response string
 	err      error
+}
+
+func (cr *capResp) getData() (string, error) {
+	return cr.response, cr.err
 }
 
 //Alghoritm is func for change solving alghoritm
@@ -44,10 +42,10 @@ func (s *Solver) Alghoritm(alg Solvable) {
 func (s *Solver) Solve() int {
 	s.mu.Lock()
 	if s.tasks == nil {
-		s.tasks = make(map[int]chan capResp)
+		s.tasks = make(map[int]chan CapResponse)
 	}
 	curr := s.counter
-	ch := make(chan capResp)
+	ch := make(chan CapResponse)
 	s.tasks[curr] = ch
 	s.counter++
 	s.mu.Unlock()
@@ -61,7 +59,7 @@ func (s *Solver) Get(id int) (string, error) {
 		defer delete(s.tasks, id)
 		defer s.decrement()
 		if val, opened := <-ch; opened {
-			return val.response, val.err
+			return val.getData()
 		}
 
 		return "", errors.New("channel closed")
@@ -75,4 +73,3 @@ func (s *Solver) decrement() {
 	s.counter--
 	s.mu.Unlock()
 }
-
