@@ -36,6 +36,13 @@ type capResp struct {
 	err      error
 }
 
+func MakeSolver() *Solver{
+	return &Solver{
+		alghoritms: make(map[algoCounter]Solvable),
+		tasks: make(map[int]chan CapResponse),
+	}
+}
+
 func (cr *capResp) getData() (string, error) {
 	return cr.response, cr.err
 }
