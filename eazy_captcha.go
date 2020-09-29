@@ -16,12 +16,19 @@ type CapResponse interface {
 	getData() (string, error)
 }
 
+type algoCounter int
+
+const (
+	RC2 algoCounter = iota
+	RC3
+)
+
 //Solver is struct
 type Solver struct {
-	alghoritm Solvable
-	mu        sync.Mutex
-	counter   int
-	tasks     map[int]chan CapResponse
+	alghoritms map[algoCounter]Solvable
+	mu         sync.Mutex
+	counter    int
+	tasks      map[int]chan CapResponse
 }
 
 type capResp struct {
@@ -33,24 +40,28 @@ func (cr *capResp) getData() (string, error) {
 	return cr.response, cr.err
 }
 
-//Alghoritm is func for change solving alghoritm
-func (s *Solver) Alghoritm(alg Solvable) {
-	s.alghoritm = alg
+//AddAlghoritm is func for change solving alghoritm
+func (s *Solver) AddAlghoritm(capType algoCounter, alg Solvable) {
+	s.alghoritms[capType] = alg
 }
 
 //Solve is func for solve captcha with selected alghoritm
-func (s *Solver) Solve() int {
+func (s *Solver) Solve(capType algoCounter) (int, error) {
 	s.mu.Lock()
+	defer s.mu.Unlock()
 	if s.tasks == nil {
 		s.tasks = make(map[int]chan CapResponse)
 	}
-	curr := s.counter
-	ch := make(chan CapResponse)
-	s.tasks[curr] = ch
-	s.counter++
-	s.mu.Unlock()
-	go s.alghoritm.Solve(ch)
-	return curr
+	if solver := s.alghoritms[capType]; solver != nil {
+		curr := s.counter
+		ch := make(chan CapResponse)
+		s.tasks[curr] = ch
+		s.counter++
+		//s.mu.Unlock()
+		go solver.Solve(ch)
+		return curr, nil
+	}
+	return 0, errors.New("this solver is not initialized or added")
 }
 
 //Get is func for get a result by id

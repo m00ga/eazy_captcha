@@ -1,60 +1,60 @@
 package eazycaptcha
 
-import(
+import (
 	"fmt"
 )
 
-type reCapError struct{
+type reCapError struct {
 	string
 }
 
-func (rcErr *reCapError) Error() string{
+func (rcErr *reCapError) Error() string {
 	return rcErr.string
 }
 
-func (rcErr *reCapError) String() string{
+func (rcErr *reCapError) String() string {
 	return rcErr.Error()
 }
 
-type reCapResponse struct{
+type reCapResponse struct {
 	response string
-	err error
+	err      error
 }
 
-func (rc *reCapResponse) getData() (string, error){
+func (rc *reCapResponse) getData() (string, error) {
 	return rc.response, rc.err
 }
 
 //type reCapRequest struct{
-	//URL string
-	//postParams, getParams map[string] string
+//URL string
+//postParams, getParams map[string] string
 //}
 
 type CapType int
 
-const(
-	RC2 CapType = iota
-	RC3
+const (
+	ReCap2 CapType = iota
+	ReCap3
 )
 
-type ReCapSolver struct{
+type ReCapSolver struct {
 	URL, Key string
-	Type CapType
-	Settings map[string] string
+	Type     CapType
+	Settings map[string]string
 }
 
-func (rcs *ReCapSolver) Solve(ch chan CapResponse){
+func (rcs *ReCapSolver) Solve(ch chan CapResponse) {
 	var typeUsuall string
 
-	switch rcs.Type{
-		case RC2:
-			typeUsuall += fmt.Sprintf("key=%s&method=userrecaptcha&softguru=104431&", rcs.Key)
-		case RC3:
-			typeUsuall += fmt.Sprintf("key=%s&method=userrecaptcha&version=v3&softguru=104431&", rcs.Key)
+	switch rcs.Type {
+	case ReCap2:
+		typeUsuall += fmt.Sprintf("key=%s&method=userrecaptcha&softguru=104431&", rcs.Key)
+	case ReCap3:
+		typeUsuall += fmt.Sprintf("key=%s&method=userrecaptcha&version=v3&softguru=104431&", rcs.Key)
 	}
 
-	for key, value := range rcs.Settings{
-		if key == "key"{ 
+	for key, value := range rcs.Settings {
+		if key == "key" {
 			continue
 		}
 		typeUsuall += fmt.Sprintf("%s=%s&", key, value)
